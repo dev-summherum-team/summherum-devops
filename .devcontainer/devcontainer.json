@@ -1,0 +1,16 @@
+{
+  "name": "Summherum DevOps Setup",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "mongodb.mongodb-vscode",
+        "mtakaki.vscode-maven"
+      ]
+    }
+  }
+}

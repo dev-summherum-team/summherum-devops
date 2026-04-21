@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/java:21
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:mongodb
+
+  mongodb:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - "27017:27017"

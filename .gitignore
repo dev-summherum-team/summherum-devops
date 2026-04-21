@@ -1,0 +1,12 @@
+# Maven Müll
+target/
+*.class
+
+# VS Code Müll
+.settings/
+.project
+.classpath
+.factorypath
+
+# Docker Daten (Wichtig: Wir teilen das Rezept, nicht die echten DB-Daten!)
+mongo-data/
