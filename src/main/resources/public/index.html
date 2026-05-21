@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐝 Summherum Reisetagebuch</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        
+        .main-wrapper { display: flex; max-width: 1200px; margin: 0 auto; gap: 30px; }
+        .left-column { flex: 1; }
+        .right-column { flex: 1; }
+
+        #map {
+            height: 700px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px; 
+            z-index: 1; 
+        }
+
+        .form-box, .entry-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, textarea, select, button { width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2980b9; }
+        .timeline { display: flex; flex-direction: column; gap: 15px; }
+        .entry-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 10px; }
+        .badge { background: #e67e22; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+
+    <h1>🐝 Summherum Tagebuch</h1>
+
+    <div class="main-wrapper">
+
+        <div class="left-column">
+            
+            <div class="form-box">
+                <h3 style="margin-top: 0;">Neue Reise eintragen</h3>
+                
+                <div style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <label for="vibe-select">Keine Idee?</label>
+                    <select id="vibe-select" style="margin: 0; width: auto; padding: 5px;">
+                        <option value="warm">Warm & Sonnig</option>
+                        <option value="kalt">Kalt & Nordisch</option>
+                        <option value="abenteuer">Abenteuer</option>
+                    </select>
+                    <button onclick="getInspiration()" style="margin: 0; width: auto; padding: 5px 15px;">🎲 Würfeln</button>
+                </div>
+
+                <input type="text" id="title" placeholder="Titel der Reise (z.B. Sommer in Italien)">
+                <input type="text" id="destination" placeholder="Reiseziel (z.B. Rom)">
+                <input type="text" id="author" placeholder="Dein Name (z.B. an-otter)">
+                <textarea id="description" rows="3" placeholder="Wie war es?"></textarea>
+                
+                <select id="packing-select" style="margin-top: 10px; background-color: #fcfcfc;">
+                    <option value="">Keine Packliste (Optional)</option>
+                </select>
+
+                <button onclick="saveEntry()">✈️ Reise speichern</button>
+            </div>
+
+            <h3>Deine Timeline</h3>
+            <div id="timeline" class="timeline">
+                </div>
+        </div>
+
+        <div class="right-column">
+            <div id="map"></div>
+        </div>
+
+    </div>
+
+<script>
+    let map;
+    let markerGroup;
+    let packingTemplates = {}; 
+
+    function initMap() {
+        map = L.map('map').setView([48.0, 10.0], 4); 
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        markerGroup = L.layerGroup().addTo(map);
+    }
+
+    async function loadPackingTemplates() {
+        try {
+            const response = await fetch('/api/packing-templates');
+            packingTemplates = await response.json(); 
+            
+            const select = document.getElementById('packing-select');
+            for (const templateName of Object.keys(packingTemplates)) {
+                select.innerHTML += `<option value="${templateName}">${templateName}-Packliste hinzufügen</option>`;
+            }
+        } catch (error) {
+            console.error("Fehler beim Laden der Packlisten:", error);
+        }
+    }
+
+    async function loadTimeline() {
+        const timelineDiv = document.getElementById('timeline');
+        timelineDiv.innerHTML = "Lade Reisen aus der Datenbank...";
+
+        try {
+            const response = await fetch('/api/entries');
+            const entries = await response.json();
+            
+            timelineDiv.innerHTML = ""; 
+            markerGroup.clearLayers();
+
+            entries.forEach(entry => {
+                const wetterInfo = entry.weather ? `${entry.weather.temperature}°C, ${entry.weather.condition}` : "Keine Wetterdaten";
+                const landInfo = entry.country ? entry.country : "";
+
+                // Packlisten-HTML generieren
+                let packingHtml = "";
+                if (entry.packingList && entry.packingList.length > 0) {
+                    const items = entry.packingList.map(item => item.name).join(', ');
+                    packingHtml = `<div style="margin-top: 10px; padding: 8px; background: #fdfae3; border-radius: 5px; font-size: 0.9em;">
+                                      <strong>🎒 Packliste:</strong> ${items}
+                                   </div>`;
+                }
+
+                const card = `
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <h2 style="margin: 0;">${entry.title}</h2>
+                            <span class="badge">${entry.destination} ${landInfo ? '('+landInfo+')' : ''}</span>
+                        </div>
+                        <p><strong>Von:</strong> ${entry.author} | <strong>Wetter:</strong> ☀️ ${wetterInfo}</p>
+                        <p>${entry.description}</p>
+                        ${packingHtml}
+                    </div>
+                `;
+                timelineDiv.innerHTML = card + timelineDiv.innerHTML; 
+
+                if (entry.coordinates && entry.coordinates.latitude && entry.coordinates.longitude) {
+                    const marker = L.marker([entry.coordinates.latitude, entry.coordinates.longitude]);
+                    marker.bindPopup(`<b>${entry.title}</b><br>${entry.destination}`);
+                    markerGroup.addLayer(marker);
+                }
+            });
+
+        } catch (error) {
+            timelineDiv.innerHTML = "Fehler beim Laden der Timeline :(";
+            console.error(error);
+        }
+    }
+
+    async function saveEntry() {
+        const selectedTemplate = document.getElementById('packing-select').value;
+        let chosenList = [];
+        
+        if (selectedTemplate && packingTemplates[selectedTemplate]) {
+            chosenList = packingTemplates[selectedTemplate];
+        }
+
+        const newEntry = {
+            title: document.getElementById('title').value,
+            destination: document.getElementById('destination').value,
+            author: document.getElementById('author').value,
+            description: document.getElementById('description').value,
+            packingList: chosenList
+        };
+
+        await fetch('/api/entries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEntry)
+        });
+
+        document.getElementById('title').value = '';
+        document.getElementById('destination').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('packing-select').value = ''; 
+
+        loadTimeline();
+    }
+
+    async function getInspiration() {
+        const selectedVibe = document.getElementById('vibe-select').value;
+        try {
+            const response = await fetch(`/api/inspiration?vibe=${selectedVibe}`);
+            const randomDestination = await response.text();
+            document.getElementById('destination').value = randomDestination;
+        } catch (error) {
+            console.error("Fehler beim Würfeln:", error);
+            alert("Das Backend hat leider keinen Ort gefunden.");
+        }
+    }
+    
+    // Start-Sequenz
+    initMap();       
+    loadPackingTemplates(); 
+    loadTimeline();  
+</script>
+
+</body>
+</html>
