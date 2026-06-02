@@ -8,5 +8,8 @@ target/
 .classpath
 .factorypath
 
+# IntelliJ
+.idea
+
 # Docker Daten (Wichtig: Wir teilen das Rezept, nicht die echten DB-Daten!)
 mongo-data/
