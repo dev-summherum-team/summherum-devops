@@ -36,12 +36,22 @@ jobs:
           key: maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: maven-
 
+      - name: MongoDB bereitstellen (Warten auf Start)
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 27017 && echo "MongoDB ready" && exit 0
+            sleep 1
+          done
+          echo "MongoDB not ready" && exit 1
+
+      - name: Build und Tests
+        env:
+          MONGO_URI: mongodb://localhost:27017
+        run: mvn clean verify
+
       - name: Artefakt 
         uses: actions/upload-artifact@v4
         with:
             name: Reisetagebuch
             path: target/*.jar
 
-
-      - name: Build und Tests
-        run: mvn clean verify
