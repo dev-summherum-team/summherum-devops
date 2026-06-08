@@ -1,4 +1,4 @@
-// Erstellt Dockerfile mit Linux, Java und jre. Öffnet erstellte JAR, startet Anwendung
+# Erstellt Dockerfile mit Linux, Java und jre. Öffnet erstellte JAR, startet Anwendung
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
