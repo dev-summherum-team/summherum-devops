@@ -71,7 +71,7 @@ jobs:
           cache: maven
 
       - name: JAR bauen (falls nicht aus Artifact genutzt)
-        run: mvn clean package
+        run: mvn clean package -DskipTests
 
       - name: Docker Image bauen
         run: docker build -t reisetagebuch:latest .
