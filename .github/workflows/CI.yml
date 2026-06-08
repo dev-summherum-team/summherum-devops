@@ -85,7 +85,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Image bauen
-        run: docker build -t reisetagebuch:latest .
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/reisetagebuch:latest .
 
       - name: Docker Image pushen
         run: |
