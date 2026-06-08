@@ -62,6 +62,13 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
+        
+      - name: Java installieren
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
 
       - name: JAR bauen (falls nicht aus Artifact genutzt)
         run: mvn clean package
