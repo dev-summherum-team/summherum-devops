@@ -112,6 +112,6 @@ jobs:
       - name: Deploy to Azure Container App
         uses: azure/container-apps-deploy-action@v1
         with:
-          containerAppName: YOUR_CONTAINER_APP_NAME
-          resourceGroup: YOUR_RESOURCE_GROUP
+          containerAppName: reisetagebuch
+          resourceGroup: summherum-devops
           imageToDeploy: ghcr.io/${{ github.repository }}/reisetagebuch:latest
