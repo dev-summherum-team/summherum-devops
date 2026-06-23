@@ -5,8 +5,25 @@ services:
     image: mcr.microsoft.com/devcontainers/java:21
     volumes:
       - ..:/workspace:cached
-    command: sleep infinity
+    
+    # -----------------------------------------------------------------------
+    # ÄNDERUNG 1: Der Start-Befehl (Vom Entwickler-Modus zum Deployment-Modus)
+    # Vorher: 'command: sleep infinity' (Container bleibt nur als leere Hülle an).
+    # Jetzt: Wir befehlen dem Container, Maven zu nutzen, um den Code zu 
+    # kompilieren und direkt im Anschluss die Main-Klasse zu starten.
+    # -----------------------------------------------------------------------
+    command: bash -c "mvn clean compile exec:java -Dexec.mainClass='summherum.Main'"
+    
     network_mode: service:mongodb
+    
+    # -----------------------------------------------------------------------
+    # ÄNDERUNG 2: Das Port-Mapping (Die Tür nach draußen)
+    # Da Javalin auf Port 7070 läuft, müssen wir diesen Port vom Container
+    # auf unseren echten Server (Host) durchschleifen. Ohne diesen Block
+    # wäre die Webseite quasi im Container eingesperrt und nicht erreichbar.
+    # -----------------------------------------------------------------------
+    ports:
+      - "7070:7070"
 
   mongodb:
     image: mongo:latest
