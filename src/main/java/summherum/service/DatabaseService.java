@@ -31,9 +31,15 @@ public class DatabaseService {
             fromProviders(PojoCodecProvider.builder().automatic(true).build())
         );
 
-        // 2. Verbindung herstellen: Da wir in Docker sind, heißt der Server 
+        // 2. Verbindung herstellen: Sollte die Environment Variable existieren,
+        // wird eine Verbindung zu der dort hinterlegten Datenbank aufgebaut.
+        // Ansonsten heißt der Server
         // einfach "mongodb" (genau wie in der docker-compose.yml definiert).
-        MongoClient mongoClient = MongoClients.create("mongodb://mongodb:27017");
+        String uri = System.getenv("MONGODB_URI");
+        if (uri == null || uri.isBlank()) {
+            uri = "mongodb://mongodb:27017";
+        }
+        MongoClient mongoClient = MongoClients.create(uri);
         
         // 3. Datenbank auswählen (wird von MongoDB automatisch erstellt, 
         // sobald der erste Eintrag gespeichert wird).
