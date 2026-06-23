@@ -35,7 +35,7 @@ public class Main {
                 });
             });
             // FRONTEND: Javalin sagen, wo unsere Webseite liegt
-            config.staticFiles.add("src/main/resources/public", Location.EXTERNAL);
+        config.staticFiles.add("/public", Location.CLASSPATH);
         }).start(7070); // Der Server lauscht auf Port 7070
 
         System.out.println("🚀 Backend gestartet auf http://localhost:7070");
