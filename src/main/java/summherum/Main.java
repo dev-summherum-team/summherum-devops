@@ -1,5 +1,10 @@
 package summherum;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+
 import io.javalin.Javalin;
 import summherum.model.TravelEntry;
 import summherum.service.DatabaseService;
@@ -43,6 +48,24 @@ public class Main {
         // --------------------------------------------------------
         // 3. DIE ROUTEN (API Endpoints)
         // --------------------------------------------------------
+
+        // HEALTH-CHECK FÜR GITHUB ACTIONS
+    app.get("/health/db", ctx -> {
+        String mongoUri = System.getenv("MONGO_URI");
+
+        try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
+            MongoDatabase database = mongoClient.getDatabase("admin");
+            Document ping = database.runCommand(new Document("ping", 1));
+
+            if (ping.getDouble("ok") == 1.0) {
+                ctx.status(200).result("OK");
+            } else {
+                ctx.status(500).result("MongoDB antwortet nicht korrekt");
+            }
+        } catch (Exception e) {
+            ctx.status(500).result("MongoDB nicht erreichbar");
+        }
+});
 
         // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
         app.get("/api/entries", ctx -> {
