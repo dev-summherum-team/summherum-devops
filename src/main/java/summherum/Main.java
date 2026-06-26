@@ -63,8 +63,9 @@ public class Main {
                 ctx.status(500).result("MongoDB antwortet nicht korrekt");
             }
         } catch (Exception e) {
-            ctx.status(500).result("MongoDB nicht erreichbar");
-        }
+        e.printStackTrace();   // Schreibt den Fehler ins Container-Log
+        ctx.status(500).result(e.getMessage());
+    }
 });
 
         // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
