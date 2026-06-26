@@ -125,6 +125,6 @@ jobs:
 
       - name: Datenbankverbindung testen
         env:
-          APP_URL: ${{ secrets.URL }}
+          URL: ${{ secrets.URL }}
         run: |
-          curl --fail "$APP_URL/health/db"
+          curl --fail "$URL/health/db"
