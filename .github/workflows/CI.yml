@@ -122,9 +122,9 @@ jobs:
     steps:
       - name: Debug
         env:
-          APP_URL: ${{ secrets.PROD_APP_URL }}
+          URL: ${{ secrets.URL }}
         run: |
-          echo "APP_URL=[$APP_URL]"
+          echo "URL=[$URL]"
       - name: Warten bis die App gestartet ist
         run: sleep 30
 
