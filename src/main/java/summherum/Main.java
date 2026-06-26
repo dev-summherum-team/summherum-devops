@@ -52,10 +52,10 @@ public class Main {
         // HEALTH-CHECK FÜR GITHUB ACTIONS
     app.get("/health/db", ctx -> {
         String mongoUri = System.getenv("MONGODB_URI");
-
+        
         if (mongoUri == null || mongoUri.isBlank()) {
              mongoUri = "mongodb://mongodb:27017";
-    }
+        }
 
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");
@@ -63,16 +63,16 @@ public class Main {
 
             Number ok = ping.get("ok", Number.class);
 
-        if (ok != null && ok.intValue() == 1) {
-            ctx.status(200).result("OK");
-    }   else {
-         ctx.status(500).result("MongoDB antwortet nicht korrekt");
-     
-        catch (Exception e) {
-                e.printStackTrace();   // Schreibt den Fehler ins Container-Log
-                ctx.status(500).result(e.getMessage());
-        }
-    });
+            if (ok != null && ok.intValue() == 1) {
+                ctx.status(200).result("OK");
+            } else {
+                ctx.status(500).result("MongoDB antwortet nicht korrekt");
+            }
+        } catch (Exception e) {
+        e.printStackTrace();   // Schreibt den Fehler ins Container-Log
+        ctx.status(500).result(e.getMessage());
+    }
+});
 
         // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
         app.get("/api/entries", ctx -> {
