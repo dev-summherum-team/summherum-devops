@@ -61,16 +61,18 @@ public class Main {
             MongoDatabase database = mongoClient.getDatabase("admin");
             Document ping = database.runCommand(new Document("ping", 1));
 
-            if (ping.getDouble("ok") == 1.0) {
-                ctx.status(200).result("OK");
-            } else {
-                ctx.status(500).result("MongoDB antwortet nicht korrekt");
-            }
-        } catch (Exception e) {
-        e.printStackTrace();   // Schreibt den Fehler ins Container-Log
-        ctx.status(500).result(e.getMessage());
-    }
-});
+            Number ok = ping.get("ok", Number.class);
+
+        if (ok != null && ok.intValue() == 1) {
+            ctx.status(200).result("OK");
+    }   else {
+         ctx.status(500).result("MongoDB antwortet nicht korrekt");
+     
+        catch (Exception e) {
+                e.printStackTrace();   // Schreibt den Fehler ins Container-Log
+                ctx.status(500).result(e.getMessage());
+        }
+    });
 
         // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
         app.get("/api/entries", ctx -> {
