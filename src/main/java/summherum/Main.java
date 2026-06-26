@@ -51,7 +51,7 @@ public class Main {
 
         // HEALTH-CHECK FÜR GITHUB ACTIONS
     app.get("/health/db", ctx -> {
-        String mongoUri = System.getenv("MONGO_URI");
+        String mongoUri = System.getenv("MONGODB_URI");
 
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");
