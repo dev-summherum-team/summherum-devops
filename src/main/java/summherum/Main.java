@@ -53,6 +53,10 @@ public class Main {
     app.get("/health/db", ctx -> {
         String mongoUri = System.getenv("MONGODB_URI");
 
+        if (mongoUri == null || mongoUri.isBlank()) {
+             mongoUri = "mongodb://mongodb:27017";
+    }
+
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");
             Document ping = database.runCommand(new Document("ping", 1));
