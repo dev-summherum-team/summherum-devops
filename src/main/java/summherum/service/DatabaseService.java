@@ -5,6 +5,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import summherum.model.TravelEntry;
@@ -73,5 +74,24 @@ public class DatabaseService {
         // find() holt alle Einträge, into() packt sie direkt in unsere Liste
         collection.find().into(entries);
         return entries;
+    }
+
+    /**
+     * Löscht einen Reiseeintrag anhand seiner MongoDB-ID.
+     * Die ID kommt später aus der URL, z. B. /api/entries/123...
+     */
+    public void deleteEntry(String id) {
+        collection.deleteOne(Filters.eq("_id", new org.bson.types.ObjectId(id)));
+    }
+
+    /**
+     * Bearbeitet einen vorhandenen Reiseeintrag anhand seiner MongoDB-ID.
+     * replaceOne ersetzt den alten Eintrag vollständig durch den neuen Eintrag.
+     */
+    public void updateEntry(String id, TravelEntry updatedEntry) {
+        collection.replaceOne(
+            Filters.eq("_id", new org.bson.types.ObjectId(id)),
+            updatedEntry
+        );
     }
 }

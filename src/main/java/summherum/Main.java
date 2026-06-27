@@ -94,6 +94,36 @@ public class Main {
             ctx.status(201);
             ctx.result("Eintrag erfolgreich gespeichert und mit API-Daten angereichert!");
         });
+
+        // ROUTE 3: Reiseeintrag löschen
+        app.delete("/api/entries/{id}", ctx -> {
+            String id = ctx.pathParam("id");
+
+            dbService.deleteEntry(id);
+
+            ctx.status(204);
+        });
+
+        // ROUTE 4: Reiseeintrag bearbeiten
+        app.put("/api/entries/{id}", ctx -> {
+            String id = ctx.pathParam("id");
+            TravelEntry updatedEntry = ctx.bodyAsClass(TravelEntry.class);
+
+            apiService.enrichTravelEntry(updatedEntry);
+
+            dbService.updateEntry(id, updatedEntry);
+
+            ctx.status(200);
+            ctx.result("Eintrag erfolgreich aktualisiert!");
+        });
+
+
+
+
+
+
+
+
         
         // --------------------------------------------------------
         // NEUE ROUTEN FÜR PACKLISTEN UND ZUFALL
