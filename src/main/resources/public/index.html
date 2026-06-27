@@ -138,6 +138,11 @@
                         <p><strong>Von:</strong> ${entry.author} | <strong>Wetter:</strong> ☀️ ${wetterInfo}</p>
                         <p>${entry.description}</p>
                         ${packingHtml}
+
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button onclick="editEntry('${entry.id}')">✏️ Bearbeiten</button>
+                                 <button onclick="deleteEntry('${entry.id}')" style="background-color: #e74c3c;">🗑️ Löschen</button>
+                            </div>
                     </div>
                 `;
                 timelineDiv.innerHTML = card + timelineDiv.innerHTML; 
@@ -181,6 +186,57 @@
         document.getElementById('destination').value = '';
         document.getElementById('description').value = '';
         document.getElementById('packing-select').value = ''; 
+
+             loadTimeline();
+    }
+
+    async function deleteEntry(id) {
+        if (!confirm("Diese Reise wirklich löschen?")) {
+            return;
+        }
+
+        await fetch(`/api/entries/${id}`, {
+            method: 'DELETE'
+        });
+
+        loadTimeline();
+    }
+
+    async function editEntry(id) {
+        const response = await fetch('/api/entries');
+        const entries = await response.json();
+        const entry = entries.find(e => e.id === id);
+
+        if (!entry) {
+            alert("Reise nicht gefunden.");
+            return;
+        }
+
+        const newTitle = prompt("Neuer Titel:", entry.title);
+        if (newTitle === null) return;
+
+        const newDestination = prompt("Neues Reiseziel:", entry.destination);
+        if (newDestination === null) return;
+
+        const newAuthor = prompt("Neuer Name:", entry.author);
+        if (newAuthor === null) return;
+
+        const newDescription = prompt("Neue Beschreibung:", entry.description);
+        if (newDescription === null) return;
+
+        const updatedEntry = {
+            ...entry,
+            title: newTitle,
+            destination: newDestination,
+            author: newAuthor,
+            description: newDescription
+        };
+
+        await fetch(`/api/entries/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedEntry)
+        });
 
         loadTimeline();
     }
