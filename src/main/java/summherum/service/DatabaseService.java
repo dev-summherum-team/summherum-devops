@@ -21,14 +21,15 @@ public class DatabaseService {
 
     // Die Collection ist vergleichbar mit einer "Tabelle" in normalen Datenbanken.
     // Hier speichern wir speziell Dokumente vom Typ TravelEntry.
+    private final MongoClient mongoClient;
     private final MongoCollection<TravelEntry> collection;
 
     public DatabaseService() {
         // 1. Der "Übersetzer": Wir sagen MongoDB, dass es unsere Java-Klasse 
         // automatisch in JSON umwandeln darf (das nennt sich POJO-Support).
         CodecRegistry pojoCodecRegistry = fromRegistries(
-            MongoClientSettings.getDefaultCodecRegistry(),
-            fromProviders(PojoCodecProvider.builder().automatic(true).build())
+                MongoClientSettings.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
         );
 
         // 2. Verbindung herstellen: Sollte die Environment Variable existieren,
@@ -39,13 +40,19 @@ public class DatabaseService {
         if (uri == null || uri.isBlank()) {
             uri = "mongodb://mongodb:27017";
         }
-        MongoClient mongoClient = MongoClients.create(uri);
-        
-        // 3. Datenbank auswählen (wird von MongoDB automatisch erstellt, 
+
+        String dbName = System.getenv("MONGODB_DB");
+        if (dbName == null || dbName.isBlank()) {
+            dbName = "travel_journal";
+        }
+
+        this.mongoClient = MongoClients.create(uri);
+
+        // 3. Datenbank auswählen (wird von MongoDB automatisch erstellt,
         // sobald der erste Eintrag gespeichert wird).
-        MongoDatabase database = mongoClient.getDatabase("travel_journal")
-                                            .withCodecRegistry(pojoCodecRegistry);
-        
+        MongoDatabase database = mongoClient.getDatabase(dbName)
+                .withCodecRegistry(pojoCodecRegistry);
+
         // 4. Die Collection (den "Ordner" für die Einträge) auswählen.
         this.collection = database.getCollection("entries", TravelEntry.class);
     }
