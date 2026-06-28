@@ -47,5 +47,3 @@ Datenbank (Inhalt)	🏠 Lokal	Reisen, die du speicherst, landen in DEINER lokale
     src/test/java/: Hier liegen die Tests.
 
     pom.xml: Die Verwaltung aller Java-Bibliotheken.
-
-testetsteste
