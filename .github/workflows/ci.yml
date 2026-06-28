@@ -10,9 +10,14 @@ on:
       - 'feature/**'
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     services:
       mongodb:
         image: mongo:latest
@@ -30,7 +35,7 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: MongoDB bereitstellen (Warten auf Start)
+      - name: MongoDB bereitstellen
         run: |
           for i in {1..30}; do
             nc -z localhost 27017 && echo "MongoDB ready" && exit 0
@@ -99,6 +104,28 @@ jobs:
           resourceGroup: summherum-devops
           imageToDeploy: ghcr.io/${{ github.repository }}/reisetagebuch:${{ github.sha }}
 
+  smoke-test-staging:
+    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature/')
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment: staging
+
+    steps:
+      - name: Warten auf Health-Endpoint
+        env:
+          URL: ${{ secrets.URL }}
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent --show-error "$URL/health/db"; then
+              echo "Service is ready"
+              exit 0
+            fi
+            echo "Not ready yet, retrying..."
+            sleep 5
+          done
+          echo "Service did not become ready in time"
+          exit 1
+
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -123,21 +150,6 @@ jobs:
           resourceGroup: summherum-devops
           imageToDeploy: ghcr.io/${{ github.repository }}/reisetagebuch:${{ github.sha }}
 
-  smoke-test-staging:
-    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature/')
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    environment: staging
-
-    steps:
-      - name: Warten bis die App gestartet ist
-        run: sleep 30
-
-      - name: Datenbankverbindung testen
-        env:
-          URL: ${{ secrets.URL }}
-        run: curl --fail "$URL/health/db"
-
   smoke-test-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -145,10 +157,17 @@ jobs:
     environment: production
 
     steps:
-      - name: Warten bis die App gestartet ist
-        run: sleep 30
-
-      - name: Datenbankverbindung testen
+      - name: Warten auf Health-Endpoint
         env:
           URL: ${{ secrets.URL }}
-        run: curl --fail "$URL/health/db"
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent --show-error "$URL/health/db"; then
+              echo "Service is ready"
+              exit 0
+            fi
+            echo "Not ready yet, retrying..."
+            sleep 5
+          done
+          echo "Service did not become ready in time"
+          exit 1
