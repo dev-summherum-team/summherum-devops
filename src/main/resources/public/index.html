@@ -57,6 +57,19 @@
 
                 <input type="text" id="title" placeholder="Titel der Reise (z.B. Sommer in Italien)">
                 <input type="text" id="destination" placeholder="Reiseziel (z.B. Rom)">
+                <div style="display: flex; gap: 10px;">
+                    <input type="date" id="startDate" title="Startdatum">
+                    <input type="date" id="endDate" title="Enddatum">
+                </div>
+
+                <select id="rating">
+                    <option value="0">Keine Bewertung</option>
+                    <option value="1">⭐ 1 Stern</option>
+                    <option value="2">⭐⭐ 2 Sterne</option>
+                    <option value="3">⭐⭐⭐ 3 Sterne</option>
+                    <option value="4">⭐⭐⭐⭐ 4 Sterne</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 Sterne</option>
+                </select>
                 <input type="text" id="author" placeholder="Dein Name (z.B. an-otter)">
                 <textarea id="description" rows="3" placeholder="Wie war es?"></textarea>
                 
@@ -119,6 +132,8 @@
             entries.forEach(entry => {
                 const wetterInfo = entry.weather ? `${entry.weather.temperature}°C, ${entry.weather.condition}` : "Keine Wetterdaten";
                 const landInfo = entry.country ? entry.country : "";
+                const zeitraumInfo = entry.startDate && entry.endDate ? `${entry.startDate} bis ${entry.endDate}` : "Kein Zeitraum";
+                const ratingInfo = entry.rating && entry.rating > 0 ? "⭐".repeat(entry.rating) : "Keine Bewertung";
 
                 // Packlisten-HTML generieren
                 let packingHtml = "";
@@ -136,6 +151,7 @@
                             <span class="badge">${entry.destination} ${landInfo ? '('+landInfo+')' : ''}</span>
                         </div>
                         <p><strong>Von:</strong> ${entry.author} | <strong>Wetter:</strong> ☀️ ${wetterInfo}</p>
+                        <p><strong>Zeitraum:</strong> ${zeitraumInfo} | <strong>Bewertung:</strong> ${ratingInfo}</p>
                         <p>${entry.description}</p>
                         ${packingHtml}
 
@@ -171,6 +187,9 @@
         const newEntry = {
             title: document.getElementById('title').value,
             destination: document.getElementById('destination').value,
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            rating: parseInt(document.getElementById('rating').value),
             author: document.getElementById('author').value,
             description: document.getElementById('description').value,
             packingList: chosenList
@@ -184,6 +203,9 @@
 
         document.getElementById('title').value = '';
         document.getElementById('destination').value = '';
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('rating').value = '0';  
         document.getElementById('description').value = '';
         document.getElementById('packing-select').value = ''; 
 
@@ -218,6 +240,16 @@
         const newDestination = prompt("Neues Reiseziel:", entry.destination);
         if (newDestination === null) return;
 
+        const newStartDate = prompt("Neues Startdatum (YYYY-MM-DD):", entry.startDate || "");
+        if (newStartDate === null) return;
+
+        const newEndDate = prompt("Neues Enddatum (YYYY-MM-DD):", entry.endDate || "");
+        if (newEndDate === null) return;
+
+        const newRating = prompt("Neue Bewertung (0-5):", entry.rating || 0);
+        if (newRating === null) return;
+
+
         const newAuthor = prompt("Neuer Name:", entry.author);
         if (newAuthor === null) return;
 
@@ -225,12 +257,15 @@
         if (newDescription === null) return;
 
         const updatedEntry = {
-            ...entry,
-            title: newTitle,
-            destination: newDestination,
-            author: newAuthor,
-            description: newDescription
-        };
+        ...entry,
+        title: newTitle,
+        destination: newDestination,
+        startDate: newStartDate,
+        endDate: newEndDate,
+        rating: parseInt(newRating),
+        author: newAuthor,
+        description: newDescription
+            };
 
         await fetch(`/api/entries/${id}`, {
             method: 'PUT',

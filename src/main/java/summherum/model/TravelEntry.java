@@ -26,7 +26,8 @@ public class TravelEntry {
     private String country;        // Wird später von der API gefüllt
     private String continent;      // Wird später von der API gefüllt
     private String startDate;      // Als Text (z.B. "2026-07-01") der Einfachheit halber
-    private String endDate;        // Als Text (z.B. "2026-07-14")
+    private String endDate;         // Als Text (z.B. "2026-07-14")
+    private int rating;         // Bewertungsskala von 1-5
     private String author;         // Der lowkey Benutzername (z.B. "an-otter")
     
     // Eine Liste für die optionalen Vibes (z.B. "#strand", "#party")
@@ -112,6 +113,9 @@ public class TravelEntry {
 
     public String getEndDate() { return endDate; }
     public void setEndDate(String endDate) { this.endDate = endDate; }
+
+    public int getRating() { return rating; }
+    public void setRating(int rating) { this.rating = rating; }
 
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
