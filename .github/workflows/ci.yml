@@ -3,6 +3,7 @@ name: CI and Deploy
 on:
   pull_request:
     branches:
+      - develop
       - main
   push:
     branches:
@@ -49,7 +50,7 @@ jobs:
         run: mvn clean verify
 
   build-image:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     needs: test
     permissions:
@@ -84,7 +85,7 @@ jobs:
         run: docker push ghcr.io/${{ github.repository }}/reisetagebuch:${{ github.sha }}
 
   deploy-staging:
-    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature/')
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     needs: build-image
     environment: staging
@@ -108,7 +109,7 @@ jobs:
           imageToDeploy: ghcr.io/${{ github.repository }}/reisetagebuch:${{ github.sha }}
 
   smoke-test-staging:
-    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature/')
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     needs: deploy-staging
     environment: staging
