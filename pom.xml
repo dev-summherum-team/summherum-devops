@@ -75,6 +75,19 @@
 <version>${junit.version}</version>
 <scope>test</scope>
 </dependency>
+<!--  =====================================================
+         Monitoring: Prometheus
+         =====================================================  -->
+<dependency>
+<groupId>io.micrometer</groupId>
+<artifactId>micrometer-registry-prometheus</artifactId>
+<version>1.13.2</version>
+</dependency>
+<dependency>
+    <groupId>io.javalin</groupId>
+    <artifactId>javalin-micrometer</artifactId>
+    <version>${javalin.version}</version>
+</dependency>
 </dependencies>
 <build>
 <plugins>
