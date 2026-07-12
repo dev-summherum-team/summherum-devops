@@ -75,10 +75,10 @@ public class Main {
             });
 
             // Prometheus-Metriken
-            //config.routes.get("/prometheus", ctx -> {
-            //ctx.contentType("text/plain; version=0.0.4; charset=utf-8");
-            //ctx.result(registry.scrape());
-            //});
+            config.routes.get("/prometheus", ctx -> {
+            ctx.contentType("text/plain; version=0.0.4; charset=utf-8");
+            ctx.result(registry.scrape());
+            });
 
             // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
             config.routes.get("/api/entries", ctx -> {
