@@ -76,7 +76,7 @@
 <scope>test</scope>
 </dependency>
 <!--  =====================================================
-         Monitoring: Prometherus
+         Monitoring: Prometheus
          =====================================================  -->
 <dependency>
 <groupId>io.micrometer</groupId>
