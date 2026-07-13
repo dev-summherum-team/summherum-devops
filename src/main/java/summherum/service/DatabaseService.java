@@ -26,7 +26,7 @@ public class DatabaseService {
     // Hier speichern wir speziell Dokumente vom Typ TravelEntry.
     private final MongoClient mongoClient;
     private final MongoCollection<TravelEntry> collection;
-    //private final Counter savedEntriesCounter;
+    private final Counter savedEntriesCounter;
 
     public DatabaseService(PrometheusMeterRegistry registry) {
         // 1. Der "Übersetzer": Wir sagen MongoDB, dass es unsere Java-Klasse 
@@ -61,9 +61,9 @@ public class DatabaseService {
         this.collection = database.getCollection("entries", TravelEntry.class);
 
         // Eigene Metrik: Anzahl gespeicherte Einträge
-    //    savedEntriesCounter = Counter.builder("travel_entries_saved_total")
-    //    .description("Anzahl gespeicherter Reiseeinträge")
-    //    .register(registry);
+        savedEntriesCounter = Counter.builder("travel_entries_saved_total")
+        .description("Anzahl gespeicherter Reiseeinträge")
+        .register(registry);
     }
 
     /**
@@ -71,7 +71,7 @@ public class DatabaseService {
      */
     public void saveEntry(TravelEntry entry) {
         collection.insertOne(entry);
-    //    savedEntriesCounter.increment();
+        savedEntriesCounter.increment();
     }
 
     /**
