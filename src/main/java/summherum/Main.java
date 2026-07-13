@@ -24,6 +24,9 @@ import summherum.service.InspirationService;
 public class Main {
     public static void main(String[] args) {
 
+        PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        MicrometerPlugin micrometerPlugin = new MicrometerPlugin(cfg -> cfg.registry = registry);
+
         // 1. Verbindung zur DB aufbauen
         DatabaseService dbService = new DatabaseService(registry);
 
@@ -34,9 +37,7 @@ public class Main {
         PackingListService packingService = new PackingListService();
         InspirationService inspirationService = new InspirationService();
 
-        PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-        MicrometerPlugin micrometerPlugin = new MicrometerPlugin(cfg -> cfg.registry = registry);
-
+ 
         // 2. Den Webserver (Javalin) konfigurieren und starten
         Javalin app = Javalin.create(config -> {
             // CORS aktivieren, damit unser Frontend später (egal von welcher URL)

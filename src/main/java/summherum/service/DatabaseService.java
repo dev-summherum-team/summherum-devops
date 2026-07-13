@@ -9,6 +9,8 @@ import com.mongodb.client.model.Filters;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import summherum.model.TravelEntry;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +102,7 @@ public class DatabaseService {
             updatedEntry
         );
     }
-    
+
     public void saveEntryCounter(TravelEntry entry){
         collection.insertOne(entry);
         savedEntriesCounter.increment();
