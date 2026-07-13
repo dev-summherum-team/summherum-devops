@@ -25,7 +25,7 @@ public class Main {
     public static void main(String[] args) {
 
         // 1. Verbindung zur DB aufbauen
-        DatabaseService dbService = new DatabaseService();
+        DatabaseService dbService = new DatabaseService(registry);
 
         // Unseren API-Agenten erschaffen
         ExternalApiService apiService = new ExternalApiService();

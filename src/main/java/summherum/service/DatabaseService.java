@@ -24,8 +24,9 @@ public class DatabaseService {
     // Hier speichern wir speziell Dokumente vom Typ TravelEntry.
     private final MongoClient mongoClient;
     private final MongoCollection<TravelEntry> collection;
+    private final Counter savedEntriesCounter;
 
-    public DatabaseService() {
+    public DatabaseService(PrometheusMeterRegistry registry) {
         // 1. Der "Übersetzer": Wir sagen MongoDB, dass es unsere Java-Klasse 
         // automatisch in JSON umwandeln darf (das nennt sich POJO-Support).
         CodecRegistry pojoCodecRegistry = fromRegistries(
@@ -56,6 +57,11 @@ public class DatabaseService {
 
         // 4. Die Collection (den "Ordner" für die Einträge) auswählen.
         this.collection = database.getCollection("entries", TravelEntry.class);
+
+        // Eigene Metrik: Anzahl gespeicherte Einträge
+        savedEntriesCounter = Counter.builder("travel_entries_saved_total")
+        .description("Anzahl gespeicherter Reiseeinträge")
+        .register(registry);
     }
 
     /**
@@ -93,5 +99,10 @@ public class DatabaseService {
             Filters.eq("_id", new org.bson.types.ObjectId(id)),
             updatedEntry
         );
+    }
+    
+    public void saveEntryCounter(TravelEntry entry){
+        collection.insertOne(entry);
+        savedEntriesCounter.increment();
     }
 }
