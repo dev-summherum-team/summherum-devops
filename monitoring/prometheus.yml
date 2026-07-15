@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "reisetagebuch"
+
+    scheme: https
+
+    static_configs:
+      - targets:
+          - reisetagebuch-prod.delightfulwave-8d25333b.francecentral.azurecontainerapps.io
+
+    metrics_path: /prometheus
