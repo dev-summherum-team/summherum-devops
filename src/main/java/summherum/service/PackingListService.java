@@ -5,18 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-/**
- * Dieser Service stellt unsere vorgefertigten Packlisten bereit.
- * Das Frontend kann diese Vorlagen abrufen und dem User als 
- * Checkboxen anzeigen.
- */
+// Packlisten
 public class PackingListService {
 
-    // Eine "Map" (Wörterbuch), die einem Namen (z.B. "Strand") eine Liste von Dingen zuweist
+    // Map die Liste von Dingen zuweist
     private final Map<String, List<PackingItem>> templates = new HashMap<>();
 
     public PackingListService() {
-        // Vorlage 1: Strandurlaub
+        // Strandurlaub
         templates.put("Strand", List.of(
             new PackingItem("Sonnencreme", false),
             new PackingItem("Badehose/Bikini", false),
@@ -24,7 +20,7 @@ public class PackingListService {
             new PackingItem("Handtuch", false)
         ));
 
-        // Vorlage 2: Städtetrip
+        // Städtetrip
         templates.put("Stadt", List.of(
             new PackingItem("Bequeme Schuhe", false),
             new PackingItem("Powerbank", false),
@@ -32,7 +28,7 @@ public class PackingListService {
             new PackingItem("Kamera", false)
         ));
         
-        // Vorlage 3: Winter & Berge
+        // Winter & Berge
         templates.put("Winter", List.of(
             new PackingItem("Dicke Jacke", false),
             new PackingItem("Handschuhe", false),
@@ -41,10 +37,7 @@ public class PackingListService {
         ));
     }
 
-    /**
-     * Gibt alle verfügbaren Vorlagen zurück, damit das Frontend daraus 
-     * ein Dropdown-Menü bauen kann.
-     */
+    // für Dropdown-Menü
     public Map<String, List<PackingItem>> getAllTemplates() {
         return templates;
     }
