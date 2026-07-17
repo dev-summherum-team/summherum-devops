@@ -47,7 +47,7 @@ public class DatabaseService {
 
         this.mongoClient = MongoClients.create(uri);
 
-          MongoDatabase database = mongoClient.getDatabase(dbName)
+        MongoDatabase database = mongoClient.getDatabase(dbName)
                 .withCodecRegistry(pojoCodecRegistry);
 
         this.collection = database.getCollection("entries", TravelEntry.class);
