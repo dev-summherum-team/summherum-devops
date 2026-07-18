@@ -14,7 +14,7 @@ public class SetupTest {
 
     @Test
     public void testJavalinDependency() {
-        // Prüft, ob Javalin-Bibliothek fehlerfrei geladen wurde
+        // Prüft, ob die Javalin-Bibliothek fehlerfrei geladen wurde
         Javalin app = Javalin.create();
         assertNotNull(app, "Javalin Instanz konnte nicht erstellt werden!");
         System.out.println("✅ Javalin Dependency funktioniert.");
@@ -22,7 +22,7 @@ public class SetupTest {
 
     @Test
     public void testJacksonDependency() {
-        // Prüft, ob Jackson ObjectMapper bereit ist
+        // Prüft, ob der Jackson ObjectMapper (für die JSON-Umwandlung) bereit ist
         ObjectMapper mapper = new ObjectMapper();
         assertNotNull(mapper, "Jackson ObjectMapper konnte nicht erstellt werden!");
         System.out.println("✅ Jackson (JSON) Dependency funktioniert.");
@@ -35,7 +35,7 @@ public class SetupTest {
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");
             
-            // ping an DB
+            // Ein simpler "Ping" Befehl direkt an die Datenbank
             Document ping = database.runCommand(new Document("ping", 1));
             
             assertNotNull(ping, "Die Ping-Antwort der Datenbank war leer.");

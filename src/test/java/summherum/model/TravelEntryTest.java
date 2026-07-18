@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TravelEntryTest {
-// prüft ob titel, Ziel, Autor und Beschreibung gespeichert & gelesen werden können
+// prüft ob titel, Ziel, Autor und Beschreibung korrekt gespeichert und gelesen werden können
     @Test
     void shouldStoreBasicTravelEntryData() {
         TravelEntry entry = new TravelEntry();
@@ -20,7 +20,7 @@ public class TravelEntryTest {
         assertEquals("Otter", entry.getAuthor());
         assertEquals("Schöne Reise", entry.getDescription());
     }
-// prüft Start-, Enddatum und Bewertung
+// prüft Startdatum, Enddatum und Bewertung
     @Test
     void shouldStoreTravelDatesAndRating() {
         TravelEntry entry = new TravelEntry();

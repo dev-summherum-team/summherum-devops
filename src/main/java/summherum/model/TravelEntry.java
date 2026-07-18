@@ -6,59 +6,90 @@ import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonRepresentation;
 import org.bson.BsonType;
 
-// Bauplan für Einträge
+/**
+ * Diese Klasse ist unser Haupt-Bauplan (Modell) für eine Reise.
+ * Jedes Mal, wenn ein User auf "Speichern" drückt, wird aus seinen
+ * Eingaben ein Objekt dieser Klasse erstellt und als JSON in die MongoDB geschoben & gespeichert.
+ */
 public class TravelEntry {
+
+    // --------------------------------------------------------
+    // 1. DIE BASICS (Direkte Eingaben & generierte Werte)
+    // --------------------------------------------------------
 
     @BsonId
     @BsonRepresentation(BsonType.OBJECT_ID)
-    private String id;             // MongoDB braucht immer eine "_id". 
-    private String title;         
-    private String description;    
-    private String destination;   
-    private String country;        // wird später von API gefüllt
-    private String continent;      // wird später von API gefüllt
-    private String startDate;     
-    private String endDate;       
-    private int rating;        
-    private String author;         
+    private String id;             // Die eindeutige ID. MongoDB braucht immer eine "_id". 
+    private String title;          // z.B. "Sommerurlaub 2026"
+    private String description;    // Der eigentliche Tagebuch-Text
+    private String destination;    // z.B. "Barcelona"
+    private String country;        // Wird später von der API gefüllt
+    private String continent;      // Wird später von der API gefüllt
+    private String startDate;      // Als Text (z.B. "2026-07-01") der Einfachheit halber
+    private String endDate;         // Als Text (z.B. "2026-07-14")
+    private int rating;         // Bewertungsskala von 1-5
+    private String author;         // Der lowkey Benutzername (z.B. "an-otter")
+    
+    // Eine Liste für die optionalen Vibes (z.B. "#strand", "#party")
+    private List<String> tags = new ArrayList<>();
 
-    // verschachtelte Objekte
+
+    // --------------------------------------------------------
+    // 2. VERSCHACHTELTE OBJEKTE (Die Stärke von MongoDB)
+    // --------------------------------------------------------
+
     private Coordinates coordinates;
     private Weather weather;
     private List<PackingItem> packingList = new ArrayList<>();
 
-    // Jackson MUSS immer einen leeren Konstruktor haben, um Objekte bauen zu können
+
+    // --------------------------------------------------------
+    // 3. PFLICHT-KONSTRUKTOR FÜR JACKSON (JSON-Wandler)
+    // --------------------------------------------------------
+    // Jackson (unser Werkzeug, das Java in JSON verwandelt) MUSS immer 
+    // einen komplett leeren Konstruktor haben, um Objekte bauen zu können.
     public TravelEntry() {
     }
 
-// innere Klassen
-    public static class Coordinates {
-        public double latitude;  
-        public double longitude; 
 
+    // --------------------------------------------------------
+    // 4. INNERE KLASSEN FÜR DIE STRUKTUR
+    // --------------------------------------------------------
+    // Um nicht für jede Kleinigkeit eine extra Datei anlegen zu müssen,
+    // definieren wir unsere Hilfs-Baupläne direkt hier "statisch" mit rein.
+
+    public static class Coordinates {
+        public double latitude;  // Breitengrad (z.B. 41.3851)
+        public double longitude; // Längengrad (z.B. 2.1734)
+
+        // Leerer Konstruktor für Jackson
         public Coordinates() {}
     }
 
     public static class Weather {
-        public double temperature;  
-        public String condition;   
+        public double temperature;  // z.B. 28.5
+        public String condition;    // z.B. "Sunny" oder "Rain"
 
         public Weather() {}
     }
 
     public static class PackingItem {
-        public String name;      
-        public boolean isPacked;  
+        public String name;       // z.B. "Sonnencreme"
+        public boolean isPacked;  // true (ja) oder false (nein)
 
         public PackingItem() {}
         
+        // Praktischer Konstruktor zum schnellen Erstellen im Code
         public PackingItem(String name, boolean isPacked) {
             this.name = name;
             this.isPacked = isPacked;
         }
     }
 
-// Getter & Setter 
+    // --------------------------------------------------------
+    // 5. GETTER & SETTER
+    // --------------------------------------------------------
+ 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -88,6 +119,9 @@ public class TravelEntry {
 
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
+
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
 
     public Coordinates getCoordinates() { return coordinates; }
     public void setCoordinates(Coordinates coordinates) { this.coordinates = coordinates; }

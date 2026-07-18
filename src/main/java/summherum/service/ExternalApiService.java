@@ -9,13 +9,16 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-// für externe APIs
+/**
+ * Dieser Service funkt externe APIs an,
+ * um fehlende Daten (Koordinaten, Land, Wetter) automatisch auszufüllen.
+ */
 public class ExternalApiService {
 
-    // vorhandene HTTP-Client
+    // Der eingebaute Java HTTP-Client (unser "Browser" im Code)
     private final HttpClient httpClient;
     
-    // Jackson-Werkzeug
+    // Unser Jackson-Werkzeug, um den API-Text (JSON) in einen durchsuchbaren Baum zu verwandeln
     private final ObjectMapper objectMapper;
 
     public ExternalApiService() {
@@ -23,17 +26,23 @@ public class ExternalApiService {
         this.objectMapper = new ObjectMapper();
     }
 
-    // fügt Reiseort automatisch hinzu
+    /**
+     * Nimmt einen frischen Reise-Eintrag, schnappt sich das 'destination' (Reiseziel)
+     * und lädt alle extra Infos aus dem Internet herunter.
+     */
     public void enrichTravelEntry(TravelEntry entry) {
         String destination = entry.getDestination();
         
+        // Wenn kein Ort angegeben wurde, können wir auch nichts suchen.
         if (destination == null || destination.trim().isEmpty()) {
             return;
         }
 
         try {
-            // Geocoding Text -> Koordinaten
-            // Leerzeichen im Städtenamen durch '%20' für die URL
+            // ---------------------------------------------------------
+            // SCHRITT 1: Geocoding (Text in Koordinaten umwandeln)
+            // ---------------------------------------------------------
+            // Wir ersetzen Leerzeichen im Städtenamen durch '%20' für die URL
             String formattedCity = destination.replace(" ", "%20");
             String geoUrl = "https://geocoding-api.open-meteo.com/v1/search?name=" + formattedCity + "&count=1&language=de";
 
@@ -44,11 +53,11 @@ public class ExternalApiService {
             JsonNode geoJson = objectMapper.readTree(geoResponse.body());
             JsonNode results = geoJson.path("results");
 
-            // Wenn API den Ort gefunden hat, ist Liste nicht leer
+            // Wenn die API den Ort gefunden hat, ist die Liste nicht leer
             if (results.isArray() && !results.isEmpty()) {
-                JsonNode locationData = results.get(0); // erstbesten Treffer nehmen
+                JsonNode locationData = results.get(0); // Den ersten (besten) Treffer nehmen
 
-                // in TravelEntry Objekt speichern
+                // Daten auslesen und direkt in unser TravelEntry Objekt speichern
                 double lat = locationData.path("latitude").asDouble();
                 double lng = locationData.path("longitude").asDouble();
                 
@@ -57,14 +66,16 @@ public class ExternalApiService {
                 coords.longitude = lng;
                 entry.setCoordinates(coords);
 
-                // Land und Kontinent abgreifen, API liefert die Zeitzone
+                // Land und Kontinent abgreifen (Die API liefert die Zeitzone, z.B. "Europe/Berlin")
                 entry.setCountry(locationData.path("country").asText());
                 String timezone = locationData.path("timezone").asText();
                 if (timezone.contains("/")) {
-                    entry.setContinent(timezone.split("/")[0]); 
+                    entry.setContinent(timezone.split("/")[0]); // Schneidet "Europe" aus
                 }
 
-                // Wetter abrufen
+                // ---------------------------------------------------------
+                // SCHRITT 2: Aktuelles Wetter für diese Koordinaten abrufen
+                // ---------------------------------------------------------
                 String weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lng + "&current_weather=true";
                 
                 HttpRequest weatherRequest = HttpRequest.newBuilder().uri(URI.create(weatherUrl)).GET().build();
@@ -76,7 +87,7 @@ public class ExternalApiService {
                 TravelEntry.Weather weather = new TravelEntry.Weather();
                 weather.temperature = currentWmo.path("temperature").asDouble();
                 
-                // einfache Interpretationen in Sonne/Regen
+                // Ein bisschen Entwickler-Magie für das Wetter (0 = Sonnig, alles andere bewölkt/Regen)
                 int wCode = currentWmo.path("weathercode").asInt();
                 weather.condition = (wCode == 0 || wCode == 1) ? "Sonnig/Klar" : "Wolkig/Niederschlag";
                 
@@ -84,7 +95,8 @@ public class ExternalApiService {
             }
             
         } catch (Exception e) {
-            // speichert Eintrag ohne Extra-Daten & verhindert Absturz
+            // Wenn das Internet weg ist oder die API streikt, stürzt das Programm nicht ab.
+            // Es speichert den Eintrag dann einfach ohne die Extra-Daten.
             System.err.println("Fehler beim API-Abruf: " + e.getMessage());
         }
     }

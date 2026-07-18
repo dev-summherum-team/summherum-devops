@@ -17,6 +17,10 @@ import summherum.service.ExternalApiService;
 import summherum.service.PackingListService;
 import summherum.service.InspirationService;
 
+/**
+ * Die Hauptklasse unseres Backends. Hier startet der Webserver
+ * und die Routen (Endpoints) für das Frontend werden definiert.
+ */
 public class Main {
     public static void main(String[] args) {
 
@@ -26,23 +30,27 @@ public class Main {
         // 1. Verbindung zur DB aufbauen
         DatabaseService dbService = new DatabaseService(registry);
 
-        // APIs einbinden
+        // Unseren API-Agenten erschaffen
         ExternalApiService apiService = new ExternalApiService();
+
+        // Unsere neuen Arbeiter für Packlisten und Zufallsgenerator erschaffen
         PackingListService packingService = new PackingListService();
         InspirationService inspirationService = new InspirationService();
 
-        // 2. Javalin konfigurieren & starten
+ 
+        // 2. Den Webserver (Javalin) konfigurieren und starten
         Javalin app = Javalin.create(config -> {
-            // CORS aktivieren, damit Frontend Anfragen an Backend schicken darf
+            // CORS aktivieren, damit unser Frontend später (egal von welcher URL)
+            // Anfragen an dieses Backend schicken darf.
             config.registerPlugin(micrometerPlugin);
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(rule -> rule.anyHost());
             });
 
-            // Frontend Pfad
+            // FRONTEND: Javalin sagen, wo unsere Webseite liegt
             config.staticFiles.add("public", Location.CLASSPATH);
 
-            // health check
+            // HEALTH-CHECK FÜR GITHUB ACTIONS
             config.routes.get("/health/db", ctx -> {
                 String mongoUri = System.getenv("MONGODB_URI");
 
@@ -59,10 +67,10 @@ public class Main {
                     if (ok != null && ok.intValue() == 1) {
                         ctx.status(200).result("OK");
                     } else {
-                        ctx.status(500).result("MongoDB antwortet nicht");
+                        ctx.status(500).result("MongoDB antwortet nicht korrekt");
                     }
                 } catch (Exception e) {
-                    e.printStackTrace(); // loggen
+                    e.printStackTrace(); // Schreibt den Fehler ins Container-Log
                     ctx.status(500).result(e.getMessage());
                 }
             });
@@ -73,55 +81,74 @@ public class Main {
             ctx.result(registry.scrape());
             });
 
-            // Alle Einträge abrufen 
+            // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
             config.routes.get("/api/entries", ctx -> {
+                // Wir holen die Liste vom Service und geben sie direkt als JSON zurück
                 ctx.json(dbService.getAllEntries());
             });
 
-            // neuen Eintrag speichern
+            // ROUTE 2: Einen neuen Eintrag speichern
             config.routes.post("/api/entries", ctx -> {
+                // 1. JSON in ein Objekt verwandeln
                 TravelEntry newEntry = ctx.bodyAsClass(TravelEntry.class);
 
-                // mit API Daten
+                // 2. MAGIE: Die fehlenden Daten aus dem Internet laden!
                 apiService.enrichTravelEntry(newEntry);
 
-                // jetzt in Datenbank speichern
+                // 3. Erst jetzt in die Datenbank speichern
                 dbService.saveEntry(newEntry);
+
                 ctx.status(201);
-                ctx.result("Eintrag gespeichert und mit API-Daten angereichert!");
+                ctx.result("Eintrag erfolgreich gespeichert und mit API-Daten angereichert!");
             });
 
-            // Eintrag löschen
+            // ROUTE 3: Reiseeintrag löschen
             config.routes.delete("/api/entries/{id}", ctx -> {
                 String id = ctx.pathParam("id");
+
                 dbService.deleteEntry(id);
+
                 ctx.status(204);
             });
 
-            // Eintrag bearbeiten
+            // ROUTE 4: Reiseeintrag bearbeiten
             config.routes.put("/api/entries/{id}", ctx -> {
                 String id = ctx.pathParam("id");
                 TravelEntry updatedEntry = ctx.bodyAsClass(TravelEntry.class);
+
                 apiService.enrichTravelEntry(updatedEntry);
+
                 dbService.updateEntry(id, updatedEntry);
+
                 ctx.status(200);
-                ctx.result("Eintrag aktualisiert!");
+                ctx.result("Eintrag erfolgreich aktualisiert!");
             });
 
-            // Packlisten-Vorlagen abrufen
+            // --------------------------------------------------------
+            // NEUE ROUTEN FÜR PACKLISTEN UND ZUFALL
+            // --------------------------------------------------------
+
+            // ROUTE 5: Packlisten-Vorlagen abrufen
+            // URL zum Testen: http://localhost:7070/api/packing-templates
             config.routes.get("/api/packing-templates", ctx -> {
                 ctx.json(packingService.getAllTemplates());
             });
 
-            // Zufalls-Inspiration
+            // ROUTE 6: Zufalls-Inspiration
+            // Das Frontend schickt den Vibe als Parameter mit
+            // URL zum Testen: http://localhost:7070/api/inspiration?vibe=warm
             config.routes.get("/api/inspiration", ctx -> {
-                // lesen aus URL den Parameter "vibe" aus
+                // Wir lesen aus der URL den Parameter "vibe" aus
                 String vibe = ctx.queryParamAsClass("vibe", String.class).getOrDefault("abenteuer");
+
+                // Holen uns das Zufallsziel
                 String destination = inspirationService.getRandomDestination(vibe);
+
+                // Schicken es zurück ans Frontend
                 ctx.result(destination);
             });
-        }).start(7070); // Port 7070
+        }).start(7070); // Der Server lauscht auf Port 7070
 
-        System.out.println("Backend gestartet auf Port 7070");
+        System.out.println("Backend gestartet auf http://localhost:7070");
     }
 }
