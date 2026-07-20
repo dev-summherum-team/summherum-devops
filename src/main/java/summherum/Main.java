@@ -7,6 +7,9 @@ import org.bson.Document;
 
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import io.javalin.micrometer.MicrometerPlugin;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 import summherum.model.TravelEntry;
 import summherum.service.DatabaseService;
@@ -21,8 +24,11 @@ import summherum.service.InspirationService;
 public class Main {
     public static void main(String[] args) {
 
+        PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        MicrometerPlugin micrometerPlugin = new MicrometerPlugin(cfg -> cfg.registry = registry);
+
         // 1. Verbindung zur DB aufbauen
-        DatabaseService dbService = new DatabaseService();
+        DatabaseService dbService = new DatabaseService(registry);
 
         // Unseren API-Agenten erschaffen
         ExternalApiService apiService = new ExternalApiService();
@@ -31,10 +37,12 @@ public class Main {
         PackingListService packingService = new PackingListService();
         InspirationService inspirationService = new InspirationService();
 
+ 
         // 2. Den Webserver (Javalin) konfigurieren und starten
         Javalin app = Javalin.create(config -> {
             // CORS aktivieren, damit unser Frontend später (egal von welcher URL)
             // Anfragen an dieses Backend schicken darf.
+            config.registerPlugin(micrometerPlugin);
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(rule -> rule.anyHost());
             });
@@ -65,6 +73,12 @@ public class Main {
                     e.printStackTrace(); // Schreibt den Fehler ins Container-Log
                     ctx.status(500).result(e.getMessage());
                 }
+            });
+
+            // Prometheus-Metriken
+            config.routes.get("/prometheus", ctx -> {
+            ctx.contentType("text/plain; version=0.0.4; charset=utf-8");
+            ctx.result(registry.scrape());
             });
 
             // ROUTE 1: Alle Einträge abrufen (Laden für die Timeline)
