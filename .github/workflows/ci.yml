@@ -43,6 +43,8 @@ jobs:
       - name: Build und Tests
         env:
           MONGO_URI: mongodb://localhost:27017
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: summherum_test
         run: mvn clean verify
 
   build-image:
