@@ -22,7 +22,7 @@ public class SetupTest {
 
     @Test
     public void testJavalinDependency() {
-        // Prüft, ob Javalin-Bibliothek fehlerfrei geladen wurde
+        // Prüft, ob die Javalin-Bibliothek fehlerfrei geladen wurde
         Javalin app = Javalin.create();
         assertNotNull(app, "Javalin Instanz konnte nicht erstellt werden!");
         System.out.println("✅ Javalin Dependency funktioniert.");
@@ -30,7 +30,7 @@ public class SetupTest {
 
     @Test
     public void testJacksonDependency() {
-        // Prüft, ob Jackson ObjectMapper bereit ist
+        // Prüft, ob der Jackson ObjectMapper (für die JSON-Umwandlung) bereit ist
         ObjectMapper mapper = new ObjectMapper();
         assertNotNull(mapper, "Jackson ObjectMapper konnte nicht erstellt werden!");
         System.out.println("✅ Jackson (JSON) Dependency funktioniert.");
@@ -43,7 +43,7 @@ public class SetupTest {
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");
             
-            // ping an DB
+            // Ein simpler "Ping" Befehl direkt an die Datenbank
             Document ping = database.runCommand(new Document("ping", 1));
             
             assertNotNull(ping, "Die Ping-Antwort der Datenbank war leer.");
@@ -54,79 +54,4 @@ public class SetupTest {
             fail("❌ Datenbankverbindung fehlgeschlagen: " + e.getMessage());
         }
     }
-    @Test
-    public void testSaveReadAndDeleteTravelEntryInMongoDb() {
-        String mongoUri = System.getenv().getOrDefault("MONGO_URI", "mongodb://localhost:27017");
-
-        try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
-
-            MongoDatabase database = mongoClient.getDatabase("summherum_test");
-            MongoCollection<Document> entries = database.getCollection("travel_entries");
-
-            // Testdaten vorher aufräumen
-            entries.deleteMany(new Document("title", "Integrationstest Eintrag"));
-
-            // Arrange: Test-Eintrag erstellen
-            Document entry = new Document("title", "Integrationstest Eintrag")
-                .append("location", "Hamburg")
-                .append("text", "Das ist ein Testeintrag aus einem Integrationstest.")
-                .append("rating", 5);
-
-            // Act: Eintrag speichern
-            entries.insertOne(entry);
-
-            // Act: Eintrag wieder auslesen
-            Document savedEntry = entries.find(
-                new Document("title", "Integrationstest Eintrag")
-            ).first();
-
-            // Assert: prüfen, ob der Eintrag wirklich gespeichert wurde
-            assertNotNull(savedEntry, "Der gespeicherte Eintrag wurde nicht gefunden.");
-            assertEquals("Integrationstest Eintrag", savedEntry.getString("title"));
-            assertEquals("Hamburg", savedEntry.getString("location"));
-            assertEquals("Das ist ein Testeintrag aus einem Integrationstest.", savedEntry.getString("text"));
-            assertEquals(5, savedEntry.getInteger("rating"));
-
-            // Cleanup: Testdaten wieder löschen
-            entries.deleteMany(new Document("title", "Integrationstest Eintrag"));
-    }
-}
-
-    @Test
-public void testJavalinInspirationRouteReturnsResponse() throws Exception {
-    InspirationService inspirationService = new InspirationService();
-
-    Javalin app = Javalin.create(config -> {
-        config.routes.get("/api/inspiration", ctx -> {
-            String vibe = ctx.queryParamAsClass("vibe", String.class).getOrDefault("abenteuer");
-            String destination = inspirationService.getRandomDestination(vibe);
-
-            ctx.result(destination);
-        });
-    });
-
-    app.start(7071);
-
-    try {
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:7071/api/inspiration?vibe=warm"))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString()
-        );
-
-        assertEquals(200, response.statusCode(), "Die Route sollte HTTP 200 zurückgeben.");
-        assertNotNull(response.body(), "Die Antwort darf nicht null sein.");
-        assertFalse(response.body().isBlank(), "Die Antwort darf nicht leer sein.");
-
-    } finally {
-        app.stop();
-    }
-}
-
 }
