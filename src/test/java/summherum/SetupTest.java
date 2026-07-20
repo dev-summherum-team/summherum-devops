@@ -5,10 +5,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.javalin.Javalin;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import summherum.service.InspirationService;
+
 
 public class SetupTest {
 
