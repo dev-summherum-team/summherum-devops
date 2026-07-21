@@ -38,7 +38,7 @@ public class SetupTest {
 
     @Test
     public void testMongoDbConnection() {
-        String mongoUri = System.getenv().getOrDefault("MONGO_URI", "mongodb://localhost:27017");
+        String mongoUri = System.getenv().getOrDefault("MONGODB_URI", "mongodb://localhost:27017");
         // Prüft, ob der Container die Datenbank über das Docker-Netzwerk erreicht
         try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
             MongoDatabase database = mongoClient.getDatabase("admin");

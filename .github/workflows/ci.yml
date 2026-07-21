@@ -41,10 +41,6 @@ jobs:
           echo "MongoDB not ready" && exit 1
 
       - name: Build und Tests
-        env:
-          MONGO_URI: mongodb://localhost:27017
-          MONGODB_URI: mongodb://localhost:27017
-          MONGODB_DB: summherum_test
         run: mvn clean verify
 
   build-image:
@@ -128,6 +124,28 @@ jobs:
           echo "Service did not become ready in time"
           exit 1
 
+  e2e-test-staging:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    needs: smoke-test-staging
+    environment: staging
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Java installieren
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: E2E Tests ausführen
+        env:
+          URL: ${{ secrets.URL }}
+        run: mvn test -Dtest=E2ECheck
+
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -173,3 +191,25 @@ jobs:
           done
           echo "Service did not become ready in time"
           exit 1
+
+  e2e-test-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: smoke-test-production
+    environment: production
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Java installieren
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: E2E Tests ausführen
+        env:
+          URL: ${{ secrets.URL }}
+        run: mvn test -Dtest=E2ECheck
