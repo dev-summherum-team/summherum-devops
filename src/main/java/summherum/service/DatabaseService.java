@@ -37,7 +37,7 @@ public class DatabaseService {
         // Verbindung herstellen
         String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isBlank()) {
-            uri = "mongodb://mongodb:27017";
+            uri = "mongodb://localhost:27017";
         }
 
         String dbName = System.getenv("MONGODB_DB");

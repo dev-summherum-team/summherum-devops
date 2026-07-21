@@ -47,7 +47,7 @@ public class Main {
                 String mongoUri = System.getenv("MONGODB_URI");
 
                 if (mongoUri == null || mongoUri.isBlank()) {
-                    mongoUri = "mongodb://mongodb:27017";
+                    mongoUri = "mongodb://localhost:27017";
                 }
 
                 try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
